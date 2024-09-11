@@ -1,2 +1,2 @@
 #!/bin/sh
-docker run --entrypoint /bin/sh boilerplate/backend-api -c "poetry run pytest"
+docker run --env-file .env --entrypoint /bin/sh boilerplate/backend-api -c "poetry run pytest"

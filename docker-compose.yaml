@@ -1,0 +1,12 @@
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+  backend-api:
+    image: boilerplate/backend-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
