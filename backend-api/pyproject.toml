@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "app"
+name = "backend-api"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Sample FastAPI app"
+authors = ["Alessandro Bolletta <no@email.invalid>"]
 readme = "README.md"
+include=['src']
 
 [tool.poetry.dependencies]
 python = "^3.12"

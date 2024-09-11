@@ -13,12 +13,13 @@ RUN pip install poetry==1.8.3
 
 # Copy only requirements to cache them in docker layer
 WORKDIR /app
-COPY poetry.lock pyproject.toml /app/
+COPY poetry.lock pyproject.toml pytest.ini /app/
 
 # Project initialization:
 RUN poetry install $(test "$TARGET" == production && echo "--only=main") --no-interaction --no-ansi
 
 # Creating folders, and files for a project:
-COPY app tests /app
+COPY src /app/src/
+COPY tests /app/tests/
 
-CMD [ "poetry", "run", "python3", "-m" ,"uvicorn", "main:app", "--app-dir", "app", "--host", "0.0.0.0", "--port", "8000"]
+CMD [ "poetry", "run", "python3", "-m" ,"uvicorn", "main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000"]
