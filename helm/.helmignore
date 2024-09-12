@@ -1,0 +1,7 @@
+.git/
+.gitignore
+*.tgz
+*.tar
+*.zip
+*.tar.gz
+*.md

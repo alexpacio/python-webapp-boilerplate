@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localstack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localstack
+  template:
+    metadata:
+      labels:
+        app: localstack
+    spec:
+      containers:
+        - name: localstack
+          image: {{ .Values.localstack.image }}
+          ports:
+            - containerPort: 4566
+            - containerPort: 4510
+              protocol: TCP
+            - containerPort: 4559
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: localstack-env-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: localstack-env-config
+data:
+  {{- $lines := .Files.Get .Values.localstack.envFile | splitList "\n" }}
+  {{- range $line := $lines }}
+  {{- $kv := split "=" $line }}
+  {{- if eq (len $kv) 2 }}
+  {{ $kv._0 }}: "{{ $kv._1 }}"
+  {{- end }}
+  {{- end }}

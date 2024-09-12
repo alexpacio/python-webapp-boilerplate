@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-api
+  template:
+    metadata:
+      labels:
+        app: backend-api
+    spec:
+      initContainers:
+        - name: wait-for-pulumi
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Pulumi Job completion..." &&               while [ "$(kubectl get configmap pulumi-status -o jsonpath='{.data.completed}')" != "true" ]; do                 echo "Pulumi not completed yet...";                 sleep 5;               done
+      containers:
+        - name: backend-api
+          image: {{ .Values.backendApi.image }}
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: backend-api-env-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-api-env-config
+data:
+  {{- $lines := .Files.Get .Values.backendApi.envFile | splitList "\n" }}
+  {{- range $line := $lines }}
+  {{- $kv := split "=" $line }}
+  {{- if eq (len $kv) 2 }}
+  {{ $kv._0 }}: "{{ $kv._1 }}"
+  {{- end }}
+  {{- end }}

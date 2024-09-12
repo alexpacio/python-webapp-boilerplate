@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pulumi-job
+spec:
+  template:
+    metadata:
+      labels:
+        app: pulumi
+    spec:
+      containers:
+        - name: pulumi
+          image: {{ .Values.pulumi.image }}
+          command: 
+            - sh
+            - -c
+            - |
+              set -e
+              poetry env use system
+              export AWS_ENDPOINT_URL="$LOCALSTACK_HOST"
+              echo $AWS_ENDPOINT_URL
+              poetry run pulumilocal refresh --stack $PULUMI_STACK_NAME --cwd infra --yes -f
+              poetry run pulumilocal up --stack $PULUMI_STACK_NAME --cwd infra --yes -f
+              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+              chmod +x kubectl
+              ./kubectl create configmap pulumi-status --from-literal=completed=true --dry-run=client -o yaml | ./kubectl apply -f -
+          envFrom:
+            - configMapRef:
+                name: pulumi-env-config
+      restartPolicy: Never
+  ttlSecondsAfterFinished: 100
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pulumi-env-config
+data:
+  {{- $lines := .Files.Get .Values.pulumi.envFile | splitList "\n" }}
+  {{- range $line := $lines }}
+  {{- $kv := split "=" $line }}
+  {{- if eq (len $kv) 2 }}
+  {{ $kv._0 }}: "{{ $kv._1 }}"
+  {{- end }}
+  {{- end }}

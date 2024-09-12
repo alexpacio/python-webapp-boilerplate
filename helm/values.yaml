@@ -1,0 +1,27 @@
+localstack:
+  name: "localstack"
+  image: "localstack/localstack"
+  service:
+    ports:
+      - port: 4566
+      - port: 4510-4559
+  envFile: ".env"
+
+backendApi:
+  name: "backend-api"
+  image: "localhost:32000/backend-api:latest"
+  service:
+    ports:
+      - port: 8000
+  envFile: ".env"
+
+pulumi:
+  name: "pulumi"
+  image: "localhost:32000/aws-bootstrapper:latest"
+  envFile: ".env"
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50

@@ -34,10 +34,10 @@ WORKDIR /app/infra
 
 RUN rm -rf __pycache__ venv
 
-RUN pip3 install -r requirements.txt
 RUN python3 -m venv venv
 ENV PATH="venv/bin:$PATH"
-
+RUN venv/bin/pip install -r requirements.txt
 
 WORKDIR /app
-CMD [ "poetry", "run", "pulumilocal", "up", "--cwd", "infra"]
+
+CMD sh -c 'poetry env use system && export AWS_ENDPOINT_URL="$LOCALSTACK_HOST" && poetry run pulumilocal refresh --stack $PULUMI_STACK_NAME --cwd infra --yes -f && poetry run pulumilocal up --stack $PULUMI_STACK_NAME --cwd infra --yes -f'
