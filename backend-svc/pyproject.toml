@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "backend-api"
+name = "backend-svc"
 version = "0.1.0"
 description = "Sample FastAPI app"
 authors = ["Alessandro Bolletta <no@email.invalid>"]

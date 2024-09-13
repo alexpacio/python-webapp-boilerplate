@@ -7,15 +7,15 @@ localstack:
       - port: 4510-4559
 
 backendApi:
-  name: "backend-api"
-  image: "localhost:32000/backend-api:latest"
+  name: "backend-svc"
+  image: "localhost:32000/backend-svc:latest"
   service:
     ports:
       - port: 8000
 
 pulumi:
   name: "pulumi"
-  image: "localhost:32000/aws-bootstrapper:latest"
+  image: "localhost:32000/pulumi:latest"
 
 autoscaling:
   enabled: true
