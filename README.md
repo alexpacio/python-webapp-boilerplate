@@ -8,6 +8,8 @@
 
 ```k get all```
 
+```k port-forward service/backend-api 8000:8000```
+
 
 
 

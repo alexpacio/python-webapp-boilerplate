@@ -5,7 +5,6 @@ localstack:
     ports:
       - port: 4566
       - port: 4510-4559
-  envFile: ".env"
 
 backendApi:
   name: "backend-api"
@@ -13,12 +12,10 @@ backendApi:
   service:
     ports:
       - port: 8000
-  envFile: ".env"
 
 pulumi:
   name: "pulumi"
   image: "localhost:32000/aws-bootstrapper:latest"
-  envFile: ".env"
 
 autoscaling:
   enabled: true

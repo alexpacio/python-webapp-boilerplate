@@ -12,19 +12,6 @@ spec:
       labels:
         app: backend-api
     spec:
-      initContainers:
-        - name: wait-for-pulumi
-          image: busybox
-          command:
-            - sh
-            - -c
-            - |
-              echo "Waiting for Pulumi Job completion..."
-              while [ "$(kubectl get configmap pulumi-status -o jsonpath='{.data.completed}')" != "true" ]; do
-                echo "Pulumi not completed yet...";
-                sleep 5;
-              done
-              echo "Pulumi Job completed!"
       containers:
         - name: backend-api
           image: {{ .Values.backendApi.image }}

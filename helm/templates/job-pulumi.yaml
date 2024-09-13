@@ -2,6 +2,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: pulumi-job
+  annotations:
+    "helm.sh/hook": "post-install"
 spec:
   template:
     metadata:
@@ -20,9 +22,6 @@ spec:
               poetry run pulumilocal cancel --stack $PULUMI_STACK_NAME --cwd infra --yes || true
               poetry run pulumilocal refresh --stack $PULUMI_STACK_NAME --cwd infra --yes -f
               poetry run pulumilocal up --stack $PULUMI_STACK_NAME --cwd infra --yes -f
-              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-              chmod +x kubectl
-              ./kubectl create configmap pulumi-status --from-literal=completed=true --dry-run=client -o yaml | ./kubectl apply -f -
           envFrom:
             - configMapRef:
                 name: app-configs
