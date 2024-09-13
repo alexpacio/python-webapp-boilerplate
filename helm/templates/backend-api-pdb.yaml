@@ -1,0 +1,9 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: "{{ .Release.Name }}-backend-svc-pdb"
+spec:
+  minAvailable: {{ .Values.autoscaling.minReplicas }}
+  selector:
+    matchLabels:
+      app: backend-svc

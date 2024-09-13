@@ -9,10 +9,17 @@ helm install python-fastapi-boilerplate ./helm/ --namespace python-api
 k get all
 k port-forward service/backend-svc 8000:8000 &
 ```
-# Redeploy backend
+
+# Redeploy backend-svc
 
 ```
-k rollout restart deploy backend-svc
+./scripts/rebuild_backend_api.sh
+```
+
+# Redeploy pulumi
+
+```
+./scripts/rebuild_pulumi.sh
 ```
 
 # Uninstall the Helm package
