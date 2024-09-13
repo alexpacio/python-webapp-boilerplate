@@ -19,6 +19,8 @@ spec:
               poetry env use system
               export AWS_ENDPOINT_URL="$LOCALSTACK_HOST"
               echo $AWS_ENDPOINT_URL
+              sed -i 's/http:\/\/[^:]\+:[0-9]\+/http:\/\/$LOCALSTACK_HOST/g' infra/Pulumi.backendapi.yaml
+              poetry run pulumilocal cancel --stack $PULUMI_STACK_NAME --cwd infra --yes
               poetry run pulumilocal refresh --stack $PULUMI_STACK_NAME --cwd infra --yes -f
               poetry run pulumilocal up --stack $PULUMI_STACK_NAME --cwd infra --yes -f
               curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -26,19 +28,6 @@ spec:
               ./kubectl create configmap pulumi-status --from-literal=completed=true --dry-run=client -o yaml | ./kubectl apply -f -
           envFrom:
             - configMapRef:
-                name: pulumi-env-config
+                name: app-configs
       restartPolicy: Never
   ttlSecondsAfterFinished: 100
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: pulumi-env-config
-data:
-  {{- $lines := .Files.Get .Values.pulumi.envFile | splitList "\n" }}
-  {{- range $line := $lines }}
-  {{- $kv := split "=" $line }}
-  {{- if eq (len $kv) 2 }}
-  {{ $kv._0 }}: "{{ $kv._1 }}"
-  {{- end }}
-  {{- end }}

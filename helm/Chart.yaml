@@ -1,5 +1,5 @@
 apiVersion: v2
-name: mychart
+name: python-aws-backend-api
 description: A Helm chart for deploying LocalStack, Backend API, and Pulumi
 version: 0.1.0
 appVersion: "1.0"

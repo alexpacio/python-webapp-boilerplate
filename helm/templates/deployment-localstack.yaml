@@ -23,17 +23,4 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: localstack-env-config
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: localstack-env-config
-data:
-  {{- $lines := .Files.Get .Values.localstack.envFile | splitList "\n" }}
-  {{- range $line := $lines }}
-  {{- $kv := split "=" $line }}
-  {{- if eq (len $kv) 2 }}
-  {{ $kv._0 }}: "{{ $kv._1 }}"
-  {{- end }}
-  {{- end }}
+                name: app-configs

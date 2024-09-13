@@ -27,17 +27,4 @@ spec:
             - containerPort: 8000
           envFrom:
             - configMapRef:
-                name: backend-api-env-config
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: backend-api-env-config
-data:
-  {{- $lines := .Files.Get .Values.backendApi.envFile | splitList "\n" }}
-  {{- range $line := $lines }}
-  {{- $kv := split "=" $line }}
-  {{- if eq (len $kv) 2 }}
-  {{ $kv._0 }}: "{{ $kv._1 }}"
-  {{- end }}
-  {{- end }}
+                name: app-configs
