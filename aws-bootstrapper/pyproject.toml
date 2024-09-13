@@ -2,7 +2,7 @@
 name = "aws-bootstrapper"
 version = "0.1.0"
 description = ""
-authors = ["Alessandro Bolletta <alexpacio91@gmail.com>"]
+authors = ["Alessandro Bolletta <no@email.never>"]
 readme = "README.md"
 include=['infra']
 
