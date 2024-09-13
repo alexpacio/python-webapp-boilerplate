@@ -1,4 +1,6 @@
-from fastapi import APIRouter
+from typing import Annotated
+from fastapi import APIRouter, status, Request, Form, File, UploadFile
+from pydantic import BaseModel
 from werkzeug.utils import secure_filename
 from services.users import create_user, get_all_users, uploader
 import json
@@ -45,7 +47,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@router.get("/users/", tags=["users"])
+@router.get("/users/", tags=["users"], status_code=status.HTTP_200_OK)
 def get_users():
     """
     Endpoint to get all users.
@@ -56,11 +58,17 @@ def get_users():
         Tuple[Response, int]: JSON response containing the list of users and HTTP status code.
     """
 
-    return get_all_users()
-
+    try:
+        return get_all_users()
+    except(e):
+        raise HTTPException(status_code=404, detail="Item not found")
 
 @router.post("/users/", tags=["users"])
-def post_user():
+def post_user(
+    name: Annotated[str, Form()],
+    email: Annotated[str, Form()],
+    avatar: Annotated[UploadFile, File()],
+):
     """
     Endpoint to create a new user.
 
@@ -71,8 +79,10 @@ def post_user():
         Tuple[Response, int]: JSON response indicating success or failure and HTTP status code.
     """
 
-    user_data = request.form.to_dict()
-    avatar = request.files.get('avatar')
+    user_data = {
+        'name': name,
+        'email': email
+    }
     error_message, status_code = validate_user_data(user_data)
 
     if error_message:
@@ -80,11 +90,12 @@ def post_user():
 
     if avatar and allowed_file(avatar.filename):
         filename = secure_filename(avatar.filename)
-        avatar_url = uploader(avatar, filename)
+        avatar_url = uploader(avatar.file, filename)
         if not avatar_url:
             return json.dumps({"error": "Avatar upload failed"}), 500
         user_data['avatar_url'] = avatar_url
     else:
         return json.dumps({"error": "Invalid file type or no file uploaded"}), 400
 
+    print(user_data)
     return create_user(user_data)

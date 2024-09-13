@@ -50,12 +50,8 @@ def get_all_users():
     )
 
     table = dynamodb.Table(DYNAMODB_TABLE)
-
-    try:
-        response = table.scan()
-        return json.dumps(response.get("Items", [])), 200
-    except Exception as e:
-        return json.dumps({"error": str(e)}), 500
+    response = table.scan()
+    return response.get("Items", [])
 
 
 def create_user(user_data):
