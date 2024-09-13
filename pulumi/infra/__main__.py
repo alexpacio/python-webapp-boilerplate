@@ -67,11 +67,11 @@ dynamo = aws.dynamodb.Table("my-table",
     billing_mode="PROVISIONED",
     read_capacity=1,
     write_capacity=1,
-    hash_key="Id",
+    hash_key="name",
     attributes=[
         {
-            "name": "Id",
+            "name": "name",
             "type": "S",
-        },
-    ],
+        }
+    ]
 )

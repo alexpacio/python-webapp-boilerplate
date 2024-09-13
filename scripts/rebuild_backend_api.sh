@@ -1,7 +1,8 @@
 #!/bin/sh
 
 alias k='kubectl -n python-api '
-./scripts/build_docker_image.sh
+docker build -t localhost:32000/backend-svc:latest -f ./backend-svc/Dockerfile backend-svc/
+docker push localhost:32000/backend-svc:latest
 k rollout restart deploy backend-svc
 pkill 'port-forward'
 sleep 3
