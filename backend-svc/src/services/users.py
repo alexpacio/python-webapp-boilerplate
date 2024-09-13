@@ -79,11 +79,8 @@ def create_user(user_data):
 
     table = dynamodb.Table(DYNAMODB_TABLE)
 
-    try:
-        table.put_item(Item=user_data)
-        return json.dumps({"success": "User created"}), 201
-    except Exception as e:
-        return json.dumps({"error": str(e)}), 500
+    table.put_item(Item=user_data)
+    return {"success": "User created"}
 
 
 def uploader(file, filename):

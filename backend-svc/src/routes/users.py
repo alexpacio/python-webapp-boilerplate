@@ -63,7 +63,7 @@ def get_users():
     except(e):
         raise HTTPException(status_code=404, detail="Item not found")
 
-@router.post("/users/", tags=["users"])
+@router.post("/users/", tags=["users"], status_code=status.HTTP_201_CREATED)
 def post_user(
     name: Annotated[str, Form()],
     email: Annotated[str, Form()],
@@ -86,16 +86,15 @@ def post_user(
     error_message, status_code = validate_user_data(user_data)
 
     if error_message:
-        return json.dumps({"error": error_message}), status_code
+        raise HTTPException(status_code=status_code, detail=error_message)
 
     if avatar and allowed_file(avatar.filename):
         filename = secure_filename(avatar.filename)
         avatar_url = uploader(avatar.file, filename)
         if not avatar_url:
-            return json.dumps({"error": "Avatar upload failed"}), 500
+            raise HTTPException(status_code=500, detail="Avatar upload failed")
         user_data['avatar_url'] = avatar_url
     else:
-        return json.dumps({"error": "Invalid file type or no file uploaded"}), 400
+        raise HTTPException(status_code=400, detail="Invalid file type or no file uploaded")
 
-    print(user_data)
     return create_user(user_data)
