@@ -16,11 +16,8 @@ spec:
             - -c
             - |
               set -e
-              poetry env use system
-              export AWS_ENDPOINT_URL="$LOCALSTACK_HOST"
-              echo $AWS_ENDPOINT_URL
-              sed -i 's/http:\/\/[^:]\+:[0-9]\+/http:\/\/$LOCALSTACK_HOST/g' infra/Pulumi.backendapi.yaml
-              poetry run pulumilocal cancel --stack $PULUMI_STACK_NAME --cwd infra --yes
+              echo "Running Pulumi deployment at $AWS_ENDPOINT_URL"
+              poetry run pulumilocal cancel --stack $PULUMI_STACK_NAME --cwd infra --yes || true
               poetry run pulumilocal refresh --stack $PULUMI_STACK_NAME --cwd infra --yes -f
               poetry run pulumilocal up --stack $PULUMI_STACK_NAME --cwd infra --yes -f
               curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -29,5 +26,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: app-configs
+          env:
+            - name: AWS_ENDPOINT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-configs
+                  key: LOCALSTACK_HOST
       restartPolicy: Never
   ttlSecondsAfterFinished: 100

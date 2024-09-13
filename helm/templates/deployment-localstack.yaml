@@ -21,6 +21,6 @@ spec:
               protocol: TCP
             - containerPort: 4559
               protocol: TCP
-          envFrom:
-            - configMapRef:
-                name: app-configs
+          env:
+            - name: LOCALSTACK_HOST
+              value: localstack:4566
