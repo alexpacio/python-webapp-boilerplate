@@ -2,7 +2,8 @@ from typing import Annotated
 from fastapi import APIRouter, status, Request, Form, File, UploadFile
 from pydantic import BaseModel
 from werkzeug.utils import secure_filename
-from services.users import create_user, get_all_users, uploader, allowed_file, validate_user_data
+from services.users import create_user, get_all_users, uploader
+from utils.validators import allowed_file, validate_user_data
 import json
 
 

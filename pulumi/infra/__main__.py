@@ -1,69 +1,23 @@
 import json
 import pulumi
 import pulumi_aws as aws
+import pulumi_kubernetes as k8s
+import os
 
-bucket = aws.s3.Bucket("my-bucket", bucket="my-bucket")
+s3_bucket_name = os.environ.get("S3_BUCKET")
+dynamodb_table_name = os.environ.get("DYNAMODB_TABLE")
+iam_user_name = os.environ.get("IAM_USER_NAME")
+iam_access_key_obj_name = os.environ.get("IAM_USER_ACCESS_KEY_OBJ_NAME")
+k8s_secret_name = os.environ.get("K8S_AWS_SECRET_NAME")
+k8s_namespace_id = os.environ.get("K8S_NAMESPACE_ID")
 
-ownership_controls = aws.s3.BucketOwnershipControls(
-    "ownership-controls",
-    bucket=bucket.id,
-    rule=aws.s3.BucketOwnershipControlsRuleArgs(
-        object_ownership="ObjectWriter",
-    ),
-)
+# Get the AWS account ID
+current = aws.get_caller_identity()
 
-public_access_block = aws.s3.BucketPublicAccessBlock(
-    "public-access-block",
-    bucket=bucket.id,
-    block_public_acls=False,
-)
+bucket = aws.s3.Bucket(s3_bucket_name, bucket=s3_bucket_name)
 
-""" bucket_metric = aws.s3.BucketMetric(
-    "my-bucket-metric",
-    bucket=bucket.id,
-) """
-
-bucket_notification = aws.s3.BucketNotification(
-    "my-bucket-notification",
-    bucket=bucket.id,
-)
-
-bucket_object = aws.s3.BucketObject(
-    "my-bucket-object",
-    bucket=bucket.id,
-    content="hello world",
-    opts=pulumi.ResourceOptions(depends_on=[public_access_block, ownership_controls]),
-)
-
-
-def public_read_policy_for_bucket(bucket_name):
-    return pulumi.Output.all(bucket_name).apply(
-        lambda args: json.dumps(
-            {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": "*",
-                        "Action": "s3:GetObject",
-                        "Resource": f"arn:aws:s3:::{args[0]}/*",
-                    }
-                ],
-            }
-        )
-    )
-
-
-bucket_policy = aws.s3.BucketPolicy(
-    "my-bucket-policy",
-    bucket=bucket.id,
-    policy=bucket.id.apply(public_read_policy_for_bucket),
-    opts=pulumi.ResourceOptions(depends_on=[public_access_block, ownership_controls]),
-)
-
-
-dynamo = aws.dynamodb.Table("my-table", 
-    name="my-table",
+dynamo = aws.dynamodb.Table(dynamodb_table_name, 
+    name=dynamodb_table_name,
     billing_mode="PROVISIONED",
     read_capacity=1,
     write_capacity=1,
@@ -75,3 +29,64 @@ dynamo = aws.dynamodb.Table("my-table",
         }
     ]
 )
+
+# Create an IAM User for the application running on Kubernetes
+app_user = aws.iam.User(iam_user_name, name=iam_user_name)
+
+# Define policies for DynamoDB access
+dynamo_db_policy = aws.iam.UserPolicy("dynamoDbPolicy",
+    user=app_user.name,
+    policy=pulumi.Output.all().apply(lambda _: {
+        "Version": "2012-10-17",
+        "Statement": [{
+            "Action": [
+                "dynamodb:GetItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+            ],
+            "Effect": "Allow",
+            "Resource": f"arn:aws:dynamodb:{aws.config.region}:{current.account_id}:table/{dynamodb_table_name}"
+        }]
+    })
+)
+
+# Define policies for S3 access
+s3_policy = aws.iam.UserPolicy("s3Policy",
+    user=app_user.name,
+    policy=pulumi.Output.all().apply(lambda _: {
+        "Version": "2012-10-17",
+        "Statement": [{
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:DeleteObject",
+            ],
+            "Effect": "Allow",
+            "Resource": f"arn:aws:s3::{current.account_id}:{s3_bucket_name}/*"
+        }]
+    })
+)
+
+# Generate access keys for the IAM user
+app_access_key = aws.iam.AccessKey(iam_access_key_obj_name, user=app_user.name)
+
+# Define the Kubernetes Secret
+aws_credentials_secret = k8s.core.v1.Secret(
+    k8s_secret_name,
+    metadata={
+        "name": k8s_secret_name,
+        "namespace": k8s_namespace_id,
+    },
+    string_data={
+        "AWS_ACCESS_KEY_ID": app_access_key.id,
+        "AWS_SECRET_ACCESS_KEY": app_access_key.secret,
+    }
+)
+
+# Export the name of the secret
+pulumi.export("aws_credentials_secret_name", aws_credentials_secret.metadata["name"])
+
+# Export the access key and secret (ensure you store them securely)
+pulumi.export("aws_access_key_id", app_access_key.id)
+pulumi.export("aws_secret_access_key", app_access_key.secret)

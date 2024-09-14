@@ -26,6 +26,10 @@ spec:
             - configMapRef:
                 name: app-configs
           env:
+            - name: K8S_AWS_SECRET_NAME
+              value: {{ .Values.backendApi.awsSecretName }}
+            - name: K8S_NAMESPACE_ID
+              value: {{ .Release.Namespace }}
             - name: AWS_ENDPOINT_URL
               valueFrom:
                 configMapKeyRef:

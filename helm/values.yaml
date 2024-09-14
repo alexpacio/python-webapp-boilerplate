@@ -12,6 +12,8 @@ backendApi:
   service:
     ports:
       - port: 8000
+  awsSecretName: aws-secret
+  awsServiceAccountName: aws-service-account
 
 pulumi:
   name: "pulumi"

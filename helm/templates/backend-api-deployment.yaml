@@ -12,11 +12,23 @@ spec:
       labels:
         app: backend-svc
     spec:
+      serviceAccountName: {{ .Values.backendApi.awsServiceAccountName }}
       containers:
         - name: backend-svc
           image: {{ .Values.backendApi.image }}
           ports:
             - containerPort: 8000
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendApi.awsSecretName }}
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendApi.awsSecretName }}
+                  key: AWS_SECRET_ACCESS_KEY
           envFrom:
             - configMapRef:
                 name: app-configs

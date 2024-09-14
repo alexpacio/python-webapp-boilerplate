@@ -39,5 +39,5 @@ ENV PATH="venv/bin:$PATH"
 RUN venv/bin/pip install -r requirements.txt
 
 WORKDIR /app
-
-CMD sh -c 'poetry env use system && export AWS_ENDPOINT_URL="$LOCALSTACK_HOST" && poetry run pulumilocal refresh --stack $PULUMI_STACK_NAME --cwd infra --yes -f && poetry run pulumilocal up --stack $PULUMI_STACK_NAME --cwd infra --yes -f'
+SHELL ["/bin/sh", "-c"]
+ENTRYPOINT poetry env use system && export AWS_ENDPOINT_URL="$LOCALSTACK_HOST" && poetry run pulumilocal refresh --stack $PULUMI_STACK_NAME --cwd infra --yes -f && poetry run pulumilocal up --stack $PULUMI_STACK_NAME --cwd infra --yes -f
