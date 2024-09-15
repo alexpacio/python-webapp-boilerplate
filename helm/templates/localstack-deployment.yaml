@@ -27,3 +27,5 @@ spec:
           env:
             - name: LOCALSTACK_HOST
               value: localstack:4566
+            - name: DATA_DIR
+              value: /tmp/localstack/data

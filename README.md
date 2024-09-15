@@ -41,6 +41,13 @@ As an optional, in order to develop the backend API server locally, you might wa
 - poetry
 - pip
 
+## Create your environment files
+
+Starting from the .env-example file, create two .env files, called:
+
+- .env-prod - This is meant for the production cluster
+- .env-e2etest - This is meant for the E2E tests cluster
+
 ## Install the Helm package and all its dependencies
 
 First of all, you need to expose a registry in your k8s cluster. For simplicity we assume that it is reachable via localhost:32000 in your local host.
@@ -48,33 +55,14 @@ First of all, you need to expose a registry in your k8s cluster. For simplicity 
 Using the below script you can build and push the needed Docker images on your registry.
 
 ```
-./scripts/build_docker_image.sh
+sh ./scripts/build_docker_image.sh <image-registry-socket-addr>
 ```
+(socket address is -> "hostname:port")
 
-Then, create a k8s namespace with a name of your own choice.
-
-```
-kubectl create namespace <ns-name>
-```
-
-Create an alias command to shorten the needed commands:
+Then, run your cluster using this script:
 
 ```
-alias k='kubectl -n <ns-name> '
-```
-
-Now, create a .env file starting from the .env-example sample file and place it in the root folder of this project.
-
-Now, create a ConfigMap starting from the .env file:
-
-```
-k create configmap app-configs --from-env-file=.env
-```
-
-Install the Helm Chart:
-
-```
-helm install python-fastapi-boilerplate ./helm/ --namespace <ns-name>
+sh ./scripts/run_app_cluster.sh <k8s-namespace> <env-file-path>
 ```
 
 The above process should init all the infrastructure needed in k8s. Make sure that everything is up and running with:
@@ -86,32 +74,46 @@ k get all
 Now, expose the port needed to access to the API server:
 
 ```
-k port-forward service/backend-svc 8000:8000 &
+kubectl -n <k8s-namespace> port-forward service/backend-svc 8000:8000 &
 ```
 
 # Scripts
 
-## Redeploy backend-svc
+## Tests
+
+### Run e2e tests
+
+This runs e2e tests using Pytest and Poetry, leveraging on a k8s transient job. Also, the script attaches to the k8s log automatically.
+
+```
+sh ./scripts/run_e2e_tests_app_cluster.sh <k8s-namespace>
+```
+
+
+## Development lifecycle: pushing changes to the cluster and update it
+
+
+### Redeploy backend-svc
 
 This builds and deploys the backend API image. Use this script to push your changes in your k8s cluster.
 
 ```
-./scripts/rebuild_backend_api.sh
+sh ./scripts/rebuild_backend_api.sh <k8s-namespace> <image-registry-socket-addr>
 ```
 
 
-## Redeploy pulumi
+### Redeploy pulumi
 
 This builds and deploys the pulumi image. Use this script to push your changes in your k8s cluster.
 
 ```
-./scripts/rebuild_pulumi.sh
+sh ./scripts/rebuild_pulumi.sh <k8s-namespace> <image-registry-socket-addr>
 ```
 
-# Uninstall the Helm package
+## Uninstall the Helm package
 
 When you are done, use this command to uninstall your Helm package.
 
 ```
-helm uninstall python-fastapi-boilerplate --namespace <ns-name>
+sh ./scripts/destroy_app_cluster.sh <k8s-namespace>
 ```

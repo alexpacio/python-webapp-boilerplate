@@ -1,4 +1,4 @@
-name: infra
+name: python-boilerplate
 runtime:
   name: python
   options:

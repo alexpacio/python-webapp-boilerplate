@@ -1,3 +1,5 @@
+enableE2eTest: false
+
 localstack:
   name: "localstack"
   image: "localstack/localstack"

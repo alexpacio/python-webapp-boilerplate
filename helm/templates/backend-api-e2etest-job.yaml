@@ -1,3 +1,4 @@
+{{- if .Values.enableE2eTest }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -29,3 +30,4 @@ spec:
             - configMapRef:
                 name: app-configs
       restartPolicy: Never
+{{- end }}

@@ -1,10 +1,7 @@
 FROM python:3.12.6-bookworm
 EXPOSE 8000
 
-ARG TARGET
-
-ENV TARGET=${TARGET} \
-  POETRY_NO_INTERACTION=1 \
+ENV POETRY_NO_INTERACTION=1 \
   POETRY_VIRTUALENVS_CREATE=1 \
   POETRY_CACHE_DIR='/tmp/poetry_cache'
 
@@ -16,7 +13,7 @@ WORKDIR /app
 COPY poetry.lock pyproject.toml pytest.ini /app/
 
 # Project initialization:
-RUN poetry install $(test "$TARGET" == production && echo "--only=main") --no-interaction --no-ansi
+RUN poetry install --no-interaction --no-ansi
 
 # Creating folders, and files for a project:
 COPY src /app/src/
