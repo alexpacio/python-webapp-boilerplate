@@ -65,6 +65,8 @@ Then, run your cluster using this script:
 sh ./scripts/run_app_cluster.sh <k8s-namespace> <env-file-path>
 ```
 
+## (optional) Access the resources from your local host
+
 The above process should init all the infrastructure needed in k8s. Make sure that everything is up and running with:
 
 ```
