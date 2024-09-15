@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backend-api-e2e-test
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: ""
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 0
+  template:
+    spec:
+      serviceAccountName: {{ .Values.backendApi.awsServiceAccountName }}
+      containers:
+        - name: backend-svc
+          image: {{ .Values.backendApi.image }}
+          command: ["/bin/sh", "-c", "poetry run pytest"]
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendApi.awsSecretName }}
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendApi.awsSecretName }}
+                  key: AWS_SECRET_ACCESS_KEY
+          envFrom:
+            - configMapRef:
+                name: app-configs
+      restartPolicy: Never
