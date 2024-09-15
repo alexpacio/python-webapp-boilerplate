@@ -19,4 +19,5 @@ RUN poetry install --no-interaction --no-ansi
 COPY src /app/src/
 COPY tests /app/tests/
 
-CMD [ "poetry", "run", "python3", "-m" ,"uvicorn", "main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000"]
+SHELL ["/bin/sh", "-c"]
+ENTRYPOINT poetry run python3 -m uvicorn main:app --app-dir src --host 0.0.0.0 --port $HTTP_PORT

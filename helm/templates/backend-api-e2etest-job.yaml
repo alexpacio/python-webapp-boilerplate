@@ -12,7 +12,7 @@ spec:
     spec:
       serviceAccountName: {{ .Values.backendApi.awsServiceAccountName }}
       containers:
-        - name: backend-svc
+        - name: backend-api-e2e-test
           image: {{ .Values.backendApi.image }}
           command: ["/bin/sh", "-c", "poetry run pytest"]
           env:

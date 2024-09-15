@@ -16,8 +16,11 @@ spec:
       containers:
         - name: backend-svc
           image: {{ .Values.backendApi.image }}
+          resources:
+            requests:
+              cpu: "250m"
           ports:
-            - containerPort: 8000
+            - containerPort: {{ .Values.backendApi.serviceHttpPort }}
           env:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
@@ -29,18 +32,20 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.backendApi.awsSecretName }}
                   key: AWS_SECRET_ACCESS_KEY
+            - name: HTTP_PORT
+              value: "{{ .Values.backendApi.serviceHttpPort }}"
           envFrom:
             - configMapRef:
                 name: app-configs
           livenessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: {{ .Values.backendApi.serviceHttpPort }}
             initialDelaySeconds: 15
             periodSeconds: 20
           readinessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: {{ .Values.backendApi.serviceHttpPort }}
             initialDelaySeconds: 5
             periodSeconds: 10

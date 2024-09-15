@@ -31,7 +31,7 @@ You need to install the following dependencies:
 - docker
 - microk8s
 - HPA CRD, if not included in your K8S distro
-- container registry and dns k8s services
+- microk8s services: registry, dns, metrics-server
 - kubectl
 - helm
 
@@ -57,7 +57,7 @@ Using the below script you can build and push the needed Docker images on your r
 ```
 sh ./scripts/build_docker_image.sh <image-registry-socket-addr>
 ```
-(socket address is -> "hostname:port")
+whereas socket address is -> "hostname:port". In microk8s, the default value is "localhost:32000".
 
 Then, run your cluster using this script:
 
@@ -68,7 +68,7 @@ sh ./scripts/run_app_cluster.sh <k8s-namespace> <env-file-path>
 The above process should init all the infrastructure needed in k8s. Make sure that everything is up and running with:
 
 ```
-k get all
+kubectl -n <k8s-namespace> get all
 ```
 
 Now, expose the port needed to access to the API server:
@@ -89,6 +89,21 @@ This runs e2e tests using Pytest and Poetry, leveraging on a k8s transient job. 
 sh ./scripts/run_e2e_tests_app_cluster.sh <k8s-namespace>
 ```
 
+### Run benchmarks
+
+First, define an output folder to be used as PV to store the output.
+
+You will need to set it in helm/values.yaml at backendApiBenchmark -> reportOutputAbsoluteDirPath
+
+Also, make sure the folder the proper write permissions.
+
+After that, you can run the below script that provides to spawn a benchmark run using k6 and leveraging on a k8s transient job. Also, the script attaches to the k8s log automatically.
+
+```
+sh ./scripts/run_app_benchmark.sh <k8s-namespace>
+```
+
+You'll find the report in html format in the folder that you have defined as "report.html"
 
 ## Development lifecycle: pushing changes to the cluster and update it
 
@@ -110,9 +125,18 @@ This builds and deploys the pulumi image. Use this script to push your changes i
 sh ./scripts/rebuild_pulumi.sh <k8s-namespace> <image-registry-socket-addr>
 ```
 
-## Uninstall the Helm package
 
-When you are done, use this command to uninstall your Helm package.
+### Redeploy k6
+
+This builds and deploys the k6 image. Use this script to push your changes in your k8s cluster.
+
+```
+sh ./scripts/rebuild_k6.sh <k8s-namespace> <image-registry-socket-addr>
+```
+
+## Destroy the entire cluster
+
+When you are done, use this command to remove the entire namespace and any other referenced resource.
 
 ```
 sh ./scripts/destroy_app_cluster.sh <k8s-namespace>
